@@ -38,25 +38,37 @@ namespace FacturationMercuriale.Services
             if (string.IsNullOrEmpty(region)) return basePrice;
 
             double coeff = 1.0;
-            string regUpper = region.ToUpper();
+            string regUpper = region.ToUpper().Trim();
 
             if (_settings.Data.TryGetValue(regUpper, out var localites))
             {
                 bool found = false;
+
+                // Chercher d'abord une correspondance de ville exacte ou partielle
                 if (!string.IsNullOrEmpty(city))
                 {
-                    string cityUpper = city.ToUpper();
+                    string cityUpper = city.ToUpper().Trim();
+
+                    // Parcourir toutes les clés de localités pour cette région
                     foreach (var key in localites.Keys)
                     {
-                        if (key.ToUpper().Contains(cityUpper))
+                        // La clé peut contenir plusieurs villes séparées par des virgules
+                        var villes = key.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                        foreach (var v in villes)
                         {
-                            coeff = localites[key];
-                            found = true;
-                            break;
+                            if (v.Trim().Equals(cityUpper, StringComparison.OrdinalIgnoreCase) ||
+                                cityUpper.Contains(v.Trim()) || v.Trim().Contains(cityUpper))
+                            {
+                                coeff = localites[key];
+                                found = true;
+                                break;
+                            }
                         }
+                        if (found) break;
                     }
                 }
 
+                // Si aucune ville trouvée, utiliser le coefficient par défaut de la région
                 if (!found && localites.TryGetValue("AUTRES LOCALITES", out double regionDefault))
                 {
                     coeff = regionDefault;

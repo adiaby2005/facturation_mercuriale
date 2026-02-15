@@ -40,13 +40,78 @@ namespace FacturationMercuriale.ViewModels
         }
 
         private string? _selectedRegion;
-        public string? SelectedRegion { get => _selectedRegion; set { if (Set(ref _selectedRegion, value)) { ReloadCities(); OnPropertyChanged(nameof(ActiveMaxPriceHint)); } } }
+        public string? SelectedRegion
+        {
+            get => _selectedRegion;
+            set
+            {
+                if (Set(ref _selectedRegion, value))
+                {
+                    ReloadCities();
+                    // Mettre à jour automatiquement le Header
+                    Header.Region = value ?? string.Empty;
+                    OnPropertyChanged(nameof(ActiveMaxPriceHint));
+                }
+            }
+        }
 
         private string? _selectedCity;
-        public string? SelectedCity { get => _selectedCity; set { if (Set(ref _selectedCity, value)) OnPropertyChanged(nameof(ActiveMaxPriceHint)); } }
+        public string? SelectedCity
+        {
+            get => _selectedCity;
+            set
+            {
+                if (Set(ref _selectedCity, value))
+                {
+                    // Mettre à jour automatiquement le Header
+                    Header.City = value ?? string.Empty;
+                    OnPropertyChanged(nameof(ActiveMaxPriceHint));
+                }
+            }
+        }
 
         private InvoiceLine? _selectedLine;
-        public InvoiceLine? SelectedLine { get => _selectedLine; set { if (Set(ref _selectedLine, value)) OnPropertyChanged(nameof(ActiveMaxPriceHint)); } }
+        public InvoiceLine? SelectedLine
+        {
+            get => _selectedLine;
+            set
+            {
+                if (Set(ref _selectedLine, value))
+                    OnPropertyChanged(nameof(ActiveMaxPriceHint));
+            }
+        }
+
+        private decimal _tvaPercent = 19.25m;
+        public decimal TvaPercent
+        {
+            get => _tvaPercent;
+            set
+            {
+                if (Set(ref _tvaPercent, value))
+                {
+                    var rate = value / 100m;
+                    CurrentInvoice.TvaRate = rate;
+                    Header.TvaRate = rate;
+                    CurrentInvoice.Recalculate();
+                }
+            }
+        }
+
+        private decimal _irPercent = 5.5m;
+        public decimal IrPercent
+        {
+            get => _irPercent;
+            set
+            {
+                if (Set(ref _irPercent, value))
+                {
+                    var rate = value / 100m;
+                    CurrentInvoice.IrRate = rate;
+                    Header.IrRate = rate;
+                    CurrentInvoice.Recalculate();
+                }
+            }
+        }
 
         public string ActiveMaxPriceHint
         {
@@ -60,21 +125,29 @@ namespace FacturationMercuriale.ViewModels
             }
         }
 
-        public decimal TvaPercent { get => 19.25m; set { CurrentInvoice.TvaRate = value / 100m; OnPropertyChanged(); } }
-        public decimal IrPercent { get => 5.5m; set { CurrentInvoice.IrRate = value / 100m; OnPropertyChanged(); } }
-
         public MainViewModel(MercurialeService mercuriale, CameroonLocationsService locations)
         {
-            _mercuriale = mercuriale; _locations = locations;
+            _mercuriale = mercuriale;
+            _locations = locations;
+
             foreach (var r in _locations.GetRegions()) Regions.Add(r);
             SelectedRegion = Regions.FirstOrDefault();
+
+            // Synchronisation initiale des taux
+            Header.TvaRate = _tvaPercent / 100m;
+            Header.IrRate = _irPercent / 100m;
+            CurrentInvoice.TvaRate = _tvaPercent / 100m;
+            CurrentInvoice.IrRate = _irPercent / 100m;
+
             CheckLicenseStatus();
         }
 
         public void ReloadCities()
         {
             Cities.Clear();
-            if (!string.IsNullOrEmpty(SelectedRegion)) foreach (var c in _locations.GetCities(SelectedRegion)) Cities.Add(c);
+            if (!string.IsNullOrEmpty(SelectedRegion))
+                foreach (var c in _locations.GetCities(SelectedRegion))
+                    Cities.Add(c);
             SelectedCity = Cities.FirstOrDefault();
         }
 
@@ -94,25 +167,60 @@ namespace FacturationMercuriale.ViewModels
 
         public void ValidatePrice(InvoiceLine line)
         {
-            var art = _mercuriale.Rubriques.SelectMany(r => r.SousRubriques).SelectMany(s => s.Articles).FirstOrDefault(a => a.RefArticle == line.RefArticle);
+            var art = _mercuriale.Rubriques
+                .SelectMany(r => r.SousRubriques)
+                .SelectMany(s => s.Articles)
+                .FirstOrDefault(a => a.RefArticle == line.RefArticle);
+
             if (art != null)
             {
-                double max = _pricingService.GetMaxAllowedPrice(SelectedRegion, SelectedCity, (double)art.Prix);
-                if ((double)line.UnitPriceHt > max)
+                // Calculer le prix maximum autorisé via le PricingService
+                double maxAllowed = _pricingService.GetMaxAllowedPrice(
+                    SelectedRegion,
+                    SelectedCity,
+                    (double)art.Prix
+                );
+
+                // Vérifier si le prix proposé dépasse le maximum
+                if ((double)line.UnitPriceHt > maxAllowed)
                 {
-                    MessageBox.Show($"Plafond dépassé ! Le maximum est {max:N0} FCFA.", "Contrôle des prix");
-                    line.UnitPriceHt = (decimal)max;
+                    MessageBox.Show(
+                        $"Prix plafond dépassé !\n\n" +
+                        $"Prix de base (Mercuriale) : {art.Prix:N0} FCFA\n" +
+                        $"Prix maximum autorisé pour {SelectedRegion}" +
+                        (!string.IsNullOrEmpty(SelectedCity) ? $" - {SelectedCity}" : "") +
+                        $" : {maxAllowed:N0} FCFA\n" +
+                        $"Prix saisi : {line.UnitPriceHt:N0} FCFA\n\n" +
+                        $"Le prix a été automatiquement ajusté au plafond autorisé.",
+                        "Contrôle des prix",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning
+                    );
+
+                    // Ajuster automatiquement au prix maximum autorisé
+                    line.UnitPriceHt = (decimal)maxAllowed;
                 }
             }
+
+            // Recalculer la facture après modification
             CurrentInvoice.Recalculate();
             OnPropertyChanged(nameof(ActiveMaxPriceHint));
         }
 
         public void LoadFromStoredInvoice(SavedInvoice dto)
         {
-            Header.InvoiceNumber = dto.InvoiceNumber; Header.InvoiceDate = dto.InvoiceDate;
-            Header.Doit = dto.Doit; Header.Objet = dto.Objet; Header.Direction = dto.Direction;
-            SelectedRegion = dto.Region; SelectedCity = dto.City;
+            Header.InvoiceNumber = dto.InvoiceNumber;
+            Header.InvoiceDate = dto.InvoiceDate;
+            Header.Doit = dto.Doit;
+            Header.Objet = dto.Objet;
+            Header.Direction = dto.Direction;
+            Header.Region = dto.Region;
+            Header.City = dto.City;
+            Header.TvaRate = CurrentInvoice.TvaRate;
+            Header.IrRate = CurrentInvoice.IrRate;
+
+            SelectedRegion = dto.Region;
+            SelectedCity = dto.City;
 
             CurrentInvoice.Lines.Clear();
             foreach (var l in dto.Lines)
@@ -130,8 +238,19 @@ namespace FacturationMercuriale.ViewModels
             OnPropertyChanged(string.Empty);
         }
 
-        public void RemoveLine(InvoiceLine line) { CurrentInvoice.Lines.Remove(line); ReNumberLines(); CurrentInvoice.Recalculate(); }
-        private void ReNumberLines() { int i = 1; foreach (var l in CurrentInvoice.Lines) l.LineNumber = i++; }
+        public void RemoveLine(InvoiceLine line)
+        {
+            CurrentInvoice.Lines.Remove(line);
+            ReNumberLines();
+            CurrentInvoice.Recalculate();
+        }
+
+        private void ReNumberLines()
+        {
+            int i = 1;
+            foreach (var l in CurrentInvoice.Lines)
+                l.LineNumber = i++;
+        }
 
         public void CheckLicenseStatus() => IsReadOnlyMode = !_licenseService.IsActivated();
 

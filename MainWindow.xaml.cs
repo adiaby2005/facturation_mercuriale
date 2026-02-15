@@ -40,10 +40,11 @@ namespace FacturationMercuriale
 
         private void DataGrid_CellEditEnding(object sender, DataGridCellEditEndingEventArgs e)
         {
-            if (e.Column.Header.ToString() == "P.U HT" && e.Row.DataContext is InvoiceLine)
+            if (e.Column.Header.ToString() == "P.U HT" && e.Row.DataContext is InvoiceLine line)
             {
+                var currentLine = line;
                 Dispatcher.BeginInvoke(new Action(() => {
-                    _vm.CurrentInvoice.Recalculate();
+                    _vm.ValidatePrice(currentLine);
                 }), System.Windows.Threading.DispatcherPriority.Background);
             }
         }

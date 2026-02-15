@@ -1,0 +1,27 @@
+﻿<Window x:Class="FacturationMercuriale.Views.PricingEditorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Ajustement des coefficients de prix" Height="450" Width="500"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <GroupBox Header="Coefficients par Région / Localité">
+            <DataGrid x:Name="PricingGrid" AutoGenerateColumns="False" CanUserAddRows="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Région" Binding="{Binding Region}" Width="150"/>
+                    <DataGridTextColumn Header="Localité (ou 'AUTRES LOCALITES')" Binding="{Binding Locality}" Width="200"/>
+                    <DataGridTextColumn Header="Coeff" Binding="{Binding Coefficient}" Width="60"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </GroupBox>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button Content="Enregistrer" Width="100" Margin="0,0,10,0" Click="Save_Click" Background="#27AE60" Foreground="White"/>
+            <Button Content="Annuler" Width="100" Click="Cancel_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

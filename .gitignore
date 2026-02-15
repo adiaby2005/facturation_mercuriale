@@ -1,0 +1,13 @@
+# Dossiers de compilation
+bin/
+obj/
+publish/
+
+# Fichiers de configuration utilisateur
+*.user
+*.suo
+.vs/
+
+# Fichiers d'installeur générés
+*.msi
+*.wixpdb

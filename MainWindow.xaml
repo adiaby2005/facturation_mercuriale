@@ -3,196 +3,234 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:FacturationMercuriale"
+        xmlns:converters="clr-namespace:FacturationMercuriale.Converters"
         mc:Ignorable="d"
         Title="{Binding WindowTitle}"
-        Width="1200" Height="750"
-        FontFamily="Calibri"
-        FontSize="11"
+        Width="1300" Height="800"
+        MinWidth="1000" MinHeight="650"
+        FontFamily="Arial"
         WindowStartupLocation="CenterScreen">
 
-    <Grid Margin="12">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="10"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <Window.Resources>
+        <!-- Convertisseurs -->
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+    </Window.Resources>
 
-        <DockPanel Grid.Row="0" LastChildFill="True">
-            <Menu DockPanel.Dock="Top" Background="White">
-                <MenuItem Header="_Fichier">
-                    <MenuItem Header="Ouvrir une facture (.json)" Click="OpenInvoice_Click">
-                        <MenuItem.Icon>
-                            <TextBlock Text="📂"/>
-                        </MenuItem.Icon>
-                    </MenuItem>
-                    <MenuItem Header="Enregistrer la facture (.json)" Click="SaveInvoice_Click">
-                        <MenuItem.Icon>
-                            <TextBlock Text="💾"/>
-                        </MenuItem.Icon>
-                    </MenuItem>
-                    <Separator/>
-                    <MenuItem Header="Exporter au format Word" Click="ExportWord_Click"/>
-                    <MenuItem Header="Exporter au format PDF" Click="ExportPdf_Click"/>
-                    <Separator/>
-                    <MenuItem Header="Activer l'application" Click="ActivateApp_Click" 
-                              Visibility="{Binding IsReadOnlyMode, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <MenuItem.Icon>
-                            <TextBlock Text="🔑"/>
-                        </MenuItem.Icon>
-                    </MenuItem>
-                </MenuItem>
-                <MenuItem Header="_Paramètres">
-                    <MenuItem Header="Ajuster les bornes de prix" Click="EditPricing_Click">
-                        <MenuItem.Icon>
-                            <TextBlock Text="📊"/>
-                        </MenuItem.Icon>
-                    </MenuItem>
-                </MenuItem>
-            </Menu>
+    <!-- Viewbox pour redimensionner tout le contenu proportionnellement -->
+    <Viewbox Stretch="Uniform" StretchDirection="Both">
+        <Grid Width="1300" Height="800" Margin="15">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="10"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-            <DockPanel Margin="0,8,0,0">
-                <TextBlock Text="FACTURATION MERCURIALE" FontWeight="Bold" FontSize="18" Foreground="#2C3E50" VerticalAlignment="Center"/>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Border Background="#E74C3C" CornerRadius="4" Padding="8,4" 
-                            Visibility="{Binding IsReadOnlyMode, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <TextBlock Text="MODE LECTURE SEULE - ACTIVATION REQUISE" Foreground="White" FontWeight="Bold"/>
-                    </Border>
-                </StackPanel>
-            </DockPanel>
-        </DockPanel>
+            <DockPanel Grid.Row="0" LastChildFill="True">
+                <Menu DockPanel.Dock="Top" Background="White" FontSize="14">
+                    <MenuItem Header="_Fichier">
+                        <MenuItem Header="Ouvrir une facture (.json)" Click="OpenInvoice_Click">
+                            <MenuItem.Icon>
+                                <TextBlock Text="📂" FontSize="16"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <MenuItem Header="Enregistrer la facture (.json)" Click="SaveInvoice_Click">
+                            <MenuItem.Icon>
+                                <TextBlock Text="💾" FontSize="16"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                        <Separator/>
+                        <MenuItem Header="Exporter au format Word" Click="ExportWord_Click"/>
+                        <MenuItem Header="Exporter au format PDF" Click="ExportPdf_Click"/>
+                        <Separator/>
+                        <MenuItem Header="Activer l'application" Click="ActivateApp_Click" 
+                                  Visibility="{Binding IsReadOnlyMode, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <MenuItem.Icon>
+                                <TextBlock Text="🔑" FontSize="16"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                    </MenuItem>
+                    <MenuItem Header="_Paramètres">
+                        <MenuItem Header="Ajuster les bornes de prix" Click="EditPricing_Click">
+                            <MenuItem.Icon>
+                                <TextBlock Text="📊" FontSize="16"/>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                    </MenuItem>
+                </Menu>
 
-        <Border Grid.Row="2" BorderBrush="#DDD" BorderThickness="1" CornerRadius="8" Background="White" Padding="15">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="320"/>
-                    <ColumnDefinition Width="20"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel>
-                        <TextBlock Text="Informations Générales" FontSize="14" FontWeight="Bold" Margin="0,0,0,10" Foreground="#34495E"/>
-                        <TextBlock Text="Numéro de facture" Margin="0,5,0,2"/>
-                        <TextBox Text="{Binding Header.InvoiceNumber, UpdateSourceTrigger=PropertyChanged}"/>
-                        <TextBlock Text="Date" Margin="0,10,0,2"/>
-                        <DatePicker SelectedDate="{Binding Header.InvoiceDate}"/>
-                        <TextBlock Text="Doit (Client)" Margin="0,10,0,2"/>
-                        <TextBox Text="{Binding Header.Doit, UpdateSourceTrigger=PropertyChanged}" Height="50" TextWrapping="Wrap" AcceptsReturn="True"/>
-                        <TextBlock Text="Objet" Margin="0,10,0,2"/>
-                        <TextBox Text="{Binding Header.Objet, UpdateSourceTrigger=PropertyChanged}"/>
-                        <Separator Margin="0,15"/>
-                        <TextBlock Text="Localisation &amp; Taxes" FontSize="14" FontWeight="Bold" Margin="0,0,0,10" Foreground="#34495E"/>
-                        <TextBlock Text="Région" Margin="0,5,0,2"/>
-                        <ComboBox ItemsSource="{Binding Regions}" SelectedItem="{Binding SelectedRegion}"/>
-                        <TextBlock Text="Ville" Margin="0,10,0,2"/>
-                        <ComboBox ItemsSource="{Binding Cities}" SelectedItem="{Binding SelectedCity}"/>
-                        <Grid Margin="0,15,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="10"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0">
-                                <TextBlock Text="TVA (%)"/>
-                                <TextBox Text="{Binding TvaPercent, StringFormat={}{0:N2}}"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="2">
-                                <TextBlock Text="IR (%)"/>
-                                <TextBox Text="{Binding IrPercent, StringFormat={}{0:N2}}"/>
-                            </StackPanel>
-                        </Grid>
-                        <TextBlock Text="Signataire (Direction)" Margin="0,10,0,2"/>
-                        <TextBox Text="{Binding Header.Direction, UpdateSourceTrigger=PropertyChanged}"/>
+                <DockPanel Margin="0,10,0,0">
+                    <TextBlock Text="FACTURATION MERCURIALE" FontWeight="Bold" 
+                               FontSize="22"
+                               Foreground="#2C3E50" VerticalAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Border Background="#E74C3C" CornerRadius="4" Padding="10,6" 
+                                Visibility="{Binding IsReadOnlyMode, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <TextBlock Text="MODE LECTURE SEULE - ACTIVATION REQUISE" Foreground="White" FontWeight="Bold" FontSize="12"/>
+                        </Border>
                     </StackPanel>
-                </ScrollViewer>
+                </DockPanel>
+            </DockPanel>
 
-                <Grid Grid.Column="2">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
+            <Border Grid.Row="2" BorderBrush="#DDD" BorderThickness="1" CornerRadius="8" Background="White" Padding="18">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="350"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
 
-                    <DockPanel Grid.Row="0" Margin="0,0,0,10">
-                        <TextBlock Text="Détails de la facture" FontSize="14" FontWeight="Bold" Foreground="#34495E" VerticalAlignment="Center"/>
-                        <Button Content="+ Ajouter un Article" HorizontalAlignment="Right" Padding="15,5" Background="#27AE60" Foreground="White" FontWeight="Bold"
-                                Click="OpenAddArticle_Click" IsEnabled="{Binding IsReadOnlyMode, Converter={StaticResource InverseBooleanConverter}}"/>
-                    </DockPanel>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <TextBlock Text="Informations Générales" FontSize="18" FontWeight="Bold" Margin="0,0,0,12" Foreground="#34495E"/>
 
-                    <Border Grid.Row="1" Background="#EBF5FB" BorderBrush="#AED6F1" BorderThickness="1" Padding="10,5" Margin="0,0,0,5" CornerRadius="4">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="ℹ️ " VerticalAlignment="Center"/>
-                            <TextBlock Text="{Binding ActiveMaxPriceHint}" FontWeight="SemiBold" Foreground="#2E86C1" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Border>
+                            <TextBlock Text="Numéro de facture" Margin="0,5,0,4" FontSize="14"/>
+                            <TextBox Text="{Binding Header.InvoiceNumber, UpdateSourceTrigger=PropertyChanged}" FontSize="14" Padding="8,6"/>
 
-                    <DataGrid Grid.Row="2" ItemsSource="{Binding CurrentInvoice.Lines}" SelectedItem="{Binding SelectedLine}" 
-                              AutoGenerateColumns="False" CanUserAddRows="False" CellEditEnding="DataGrid_CellEditEnding"
-                              GridLinesVisibility="Horizontal" BorderBrush="#EEE">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="#" Binding="{Binding LineNumber}" IsReadOnly="True" Width="30"/>
-                            <DataGridTextColumn Header="Réf" Binding="{Binding RefArticle}" IsReadOnly="True" Width="80"/>
-                            <DataGridTextColumn Header="Désignation" Binding="{Binding Designation}" IsReadOnly="True" Width="*"/>
-                            <DataGridTemplateColumn Header="Qté" Width="60">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <TextBox Text="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center"/>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="P.U HT" Binding="{Binding UnitPriceHt, StringFormat={}{0:N0}}" Width="90"/>
-                            <DataGridTextColumn Header="Total HT" Binding="{Binding TotalHt, StringFormat={}{0:N0}}" IsReadOnly="True" Width="100"/>
-                            <DataGridTemplateColumn Width="40">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <Button Content="✕" Foreground="Red" Background="Transparent" BorderThickness="0" FontWeight="Bold" Click="RemoveLine_Click"/>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                        </DataGrid.Columns>
-                    </DataGrid>
+                            <TextBlock Text="Date" Margin="0,12,0,4" FontSize="14"/>
+                            <DatePicker SelectedDate="{Binding Header.InvoiceDate}" FontSize="14" Height="34"/>
 
-                    <Border Grid.Row="3" Background="#34495E" CornerRadius="6" Padding="15" Margin="0,15,0,0">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="220"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="ARRÊTÉ LA PRÉSENTE FACTURE À LA SOMME TTC DE :" Foreground="#BDC3C7" FontSize="9"/>
-                                <TextBlock Text="{Binding CurrentInvoice.TotalTtcInWords}" Foreground="White" FontWeight="Bold" TextWrapping="Wrap" Margin="0,5,0,0" FontStyle="Italic"/>
-                            </StackPanel>
-                            <Grid Grid.Column="1">
+                            <TextBlock Text="Doit (Client)" Margin="0,12,0,4" FontSize="14"/>
+                            <TextBox Text="{Binding Header.Doit, UpdateSourceTrigger=PropertyChanged}" Height="70" TextWrapping="Wrap" 
+                                     AcceptsReturn="True" FontSize="14" Padding="8,6"/>
+
+                            <TextBlock Text="Objet" Margin="0,12,0,4" FontSize="14"/>
+                            <TextBox Text="{Binding Header.Objet, UpdateSourceTrigger=PropertyChanged}" FontSize="14" Padding="8,6"/>
+
+                            <Separator Margin="0,18"/>
+
+                            <TextBlock Text="Localisation &amp; Taxes" FontSize="18" FontWeight="Bold" Margin="0,0,0,12" Foreground="#34495E"/>
+
+                            <TextBlock Text="Région" Margin="0,5,0,4" FontSize="14"/>
+                            <ComboBox ItemsSource="{Binding Regions}" SelectedItem="{Binding SelectedRegion}" FontSize="14" Height="34"/>
+
+                            <TextBlock Text="Ville" Margin="0,12,0,4" FontSize="14"/>
+                            <ComboBox ItemsSource="{Binding Cities}" SelectedItem="{Binding SelectedCity}" FontSize="14" Height="34"/>
+
+                            <Grid Margin="0,18,0,0">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="10"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-                                <TextBlock Grid.Row="0" Text="Total HT :" Foreground="White"/>
-                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CurrentInvoice.TotalHt, StringFormat={}{0:N0} F}" Foreground="White" TextAlignment="Right"/>
-                                <TextBlock Grid.Row="1" Text="TVA :" Foreground="White"/>
-                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding CurrentInvoice.TotalTva, StringFormat={}{0:N0} F}" Foreground="White" TextAlignment="Right"/>
-                                <TextBlock Grid.Row="2" Text="I.R :" Foreground="White"/>
-                                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding CurrentInvoice.TotalIr, StringFormat={}{0:N0} F}" Foreground="White" TextAlignment="Right"/>
-                                <Separator Grid.Row="3" Grid.ColumnSpan="2" Margin="0,5" Background="#5D6D7E"/>
-                                <TextBlock Grid.Row="4" Text="TOTAL TTC :" Foreground="#ECF0F1"/>
-                                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding CurrentInvoice.TotalTtc, StringFormat={}{0:N0} F}" Foreground="#ECF0F1" TextAlignment="Right"/>
-                                <TextBlock Grid.Row="5" Text="NET À PAYER :" Foreground="White" FontWeight="Bold" FontSize="14"/>
-                                <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding CurrentInvoice.NetAPayer, StringFormat={}{0:N0} F}" Foreground="White" FontWeight="Bold" FontSize="14" TextAlignment="Right"/>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="TVA (%)" FontSize="14"/>
+                                    <TextBox Text="{Binding TvaPercent, StringFormat={}{0:N2}}" FontSize="14" Height="34" Padding="8,6"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="IR (%)" FontSize="14"/>
+                                    <TextBox Text="{Binding IrPercent, StringFormat={}{0:N2}}" FontSize="14" Height="34" Padding="8,6"/>
+                                </StackPanel>
                             </Grid>
-                        </Grid>
-                    </Border>
+
+                            <TextBlock Text="Signataire (Direction)" Margin="0,12,0,4" FontSize="14"/>
+                            <TextBox Text="{Binding Header.Direction, UpdateSourceTrigger=PropertyChanged}" FontSize="14" Padding="8,6" Height="34"/>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <Grid Grid.Column="2">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <DockPanel Grid.Row="0" Margin="0,0,0,12">
+                            <TextBlock Text="Détails de la facture" FontSize="18" FontWeight="Bold" Foreground="#34495E" VerticalAlignment="Center"/>
+                            <Button Content="+ Ajouter un Article" HorizontalAlignment="Right" Padding="15,8" Background="#27AE60" Foreground="White" 
+                                    FontWeight="Bold" FontSize="14" Click="OpenAddArticle_Click" 
+                                    IsEnabled="{Binding IsReadOnlyMode, Converter={StaticResource InverseBooleanConverter}}"
+                                    Height="38"/>
+                        </DockPanel>
+
+                        <Border Grid.Row="1" Background="#EBF5FB" BorderBrush="#AED6F1" BorderThickness="1" Padding="10,8" Margin="0,0,0,8" CornerRadius="4">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="ℹ️ " VerticalAlignment="Center" FontSize="14"/>
+                                <TextBlock Text="{Binding ActiveMaxPriceHint}" FontWeight="SemiBold" Foreground="#2E86C1" VerticalAlignment="Center" FontSize="14"/>
+                            </StackPanel>
+                        </Border>
+
+                        <DataGrid Grid.Row="2" ItemsSource="{Binding CurrentInvoice.Lines}" SelectedItem="{Binding SelectedLine}" 
+                                  AutoGenerateColumns="False" CanUserAddRows="False" CellEditEnding="DataGrid_CellEditEnding"
+                                  GridLinesVisibility="Horizontal" BorderBrush="#EEE" FontSize="14" RowHeight="35">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="#" Binding="{Binding LineNumber}" IsReadOnly="True" Width="40"/>
+                                <DataGridTextColumn Header="Réf" Binding="{Binding RefArticle}" IsReadOnly="True" Width="90"/>
+                                <DataGridTextColumn Header="Désignation" Binding="{Binding Designation}" IsReadOnly="True" Width="*"/>
+                                <DataGridTemplateColumn Header="Qté" Width="70">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBox Text="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}" 
+                                                     TextAlignment="Center" VerticalAlignment="Center" Height="28" FontSize="14" Margin="2"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="P.U HT" Binding="{Binding UnitPriceHt, StringFormat={}{0:N0}}" Width="110"/>
+                                <DataGridTextColumn Header="Total HT" Binding="{Binding TotalHt, StringFormat={}{0:N0}}" IsReadOnly="True" Width="120"/>
+                                <DataGridTemplateColumn Width="45">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Content="✕" Foreground="Red" Background="Transparent" BorderThickness="0" 
+                                                    FontWeight="Bold" FontSize="16" Click="RemoveLine_Click" Height="28" Width="28"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <Border Grid.Row="3" Background="#34495E" CornerRadius="6" Padding="15" Margin="0,15,0,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="260"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="ARRÊTÉ LA PRÉSENTE FACTURE À LA SOMME TTC DE :" Foreground="#BDC3C7" FontSize="12"/>
+                                    <TextBlock Text="{Binding CurrentInvoice.TotalTtcInWords}" Foreground="White" FontWeight="Bold" 
+                                               TextWrapping="Wrap" Margin="0,8,0,0" FontStyle="Italic" FontSize="14"/>
+                                </StackPanel>
+                                <Grid Grid.Column="1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Total HT :" Foreground="White" FontSize="14"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding CurrentInvoice.TotalHt, StringFormat={}{0:N0} F}" 
+                                               Foreground="White" TextAlignment="Right" FontSize="14"/>
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="TVA :" Foreground="White" FontSize="14"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding CurrentInvoice.TotalTva, StringFormat={}{0:N0} F}" 
+                                               Foreground="White" TextAlignment="Right" FontSize="14"/>
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="I.R :" Foreground="White" FontSize="14"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding CurrentInvoice.TotalIr, StringFormat={}{0:N0} F}" 
+                                               Foreground="White" TextAlignment="Right" FontSize="14"/>
+
+                                    <Separator Grid.Row="3" Grid.ColumnSpan="2" Margin="0,6" Background="#5D6D7E"/>
+
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="TOTAL TTC :" Foreground="#ECF0F1" FontSize="14" FontWeight="SemiBold"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding CurrentInvoice.TotalTtc, StringFormat={}{0:N0} F}" 
+                                               Foreground="#ECF0F1" TextAlignment="Right" FontSize="14" FontWeight="SemiBold"/>
+
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="NET À PAYER :" Foreground="White" FontWeight="Bold" FontSize="16"/>
+                                    <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding CurrentInvoice.NetAPayer, StringFormat={}{0:N0} F}" 
+                                               Foreground="White" FontWeight="Bold" FontSize="16" TextAlignment="Right"/>
+                                </Grid>
+                            </Grid>
+                        </Border>
+                    </Grid>
                 </Grid>
-            </Grid>
-        </Border>
-    </Grid>
+            </Border>
+        </Grid>
+    </Viewbox>
 </Window>

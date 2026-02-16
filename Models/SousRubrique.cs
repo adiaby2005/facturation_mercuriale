@@ -21,6 +21,6 @@ namespace FacturationMercuriale.Models
         public List<Article> Articles { get; set; } = new();
 
         [JsonIgnore]
-        public string Display => $"{NumSousRubrique:D3} - {DesignationFr} ({NbArticles})";
+        public string Display => $"{NumSousRubrique:D3} - {DesignationFr} ({NbArticles} articles)";
     }
 }

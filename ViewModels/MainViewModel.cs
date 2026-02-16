@@ -18,8 +18,8 @@ namespace FacturationMercuriale.ViewModels
 
         // Titre dynamique de la fenêtre
         public string WindowTitle => IsReadOnlyMode
-            ? $"Facturation Mercuriale ({_mercuriale.Rubriques.Count} rubriques) - VERSION D'ESSAI"
-            : $"Facturation Mercuriale ({_mercuriale.Rubriques.Count} rubriques) - VERSION LICENCIÉE";
+            ? "Facturation Mercuriale - VERSION D'ESSAI"
+            : "Facturation Mercuriale - VERSION LICENCIÉE";
 
         public InvoiceHeader Header { get; } = new();
         public Invoice CurrentInvoice { get; } = new();

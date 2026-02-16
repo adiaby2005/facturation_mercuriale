@@ -32,6 +32,10 @@ namespace FacturationMercuriale.Services
             var dateFr = header.InvoiceDate.ToString("dd MMMM yyyy", fr);
             var sign = string.IsNullOrWhiteSpace(header.Direction) ? "LA DIRECTION" : header.Direction.Trim();
 
+            // Convertir les taux en pourcentages pour l'affichage
+            var tvaPercent = header.TvaRate * 100;
+            var irPercent = header.IrRate * 100;
+
             Document.Create(container =>
             {
                 container.Page(page =>
@@ -81,8 +85,8 @@ namespace FacturationMercuriale.Services
 
                         col.Item().PaddingTop(10);
 
-                        // Tableau totaux
-                        col.Item().AlignRight().Element(e => BuildTotalsTable(e, invoice, header.TvaRate, header.IrRate));
+                        // Tableau totaux avec taux en pourcentage
+                        col.Item().AlignRight().Element(e => BuildTotalsTable(e, invoice, tvaPercent, irPercent));
 
                         col.Item().PaddingTop(10);
 
@@ -152,7 +156,7 @@ namespace FacturationMercuriale.Services
             static IContainer BodyCell(IContainer c) => c.Border(1).BorderColor(Colors.Grey.Medium).Padding(4);
         }
 
-        private static void BuildTotalsTable(IContainer container, Invoice invoice, decimal tvaRate, decimal irRate)
+        private static void BuildTotalsTable(IContainer container, Invoice invoice, decimal tvaPercent, decimal irPercent)
         {
             var fr = CultureInfo.GetCultureInfo("fr-FR");
 
@@ -171,8 +175,8 @@ namespace FacturationMercuriale.Services
                 }
 
                 Row("Total HT", $"{FormatMoney(invoice.TotalHt)} F CFA", bold: true);
-                Row($"TVA ({tvaRate.ToString("0.##", fr)}%)", $"{FormatMoney(invoice.TotalTva)} F CFA");
-                Row($"IR ({irRate.ToString("0.##", fr)}%)", $"{FormatMoney(invoice.TotalIr)} F CFA");
+                Row($"TVA ({tvaPercent.ToString("0.##", fr)}%)", $"{FormatMoney(invoice.TotalTva)} F CFA");
+                Row($"IR ({irPercent.ToString("0.##", fr)}%)", $"{FormatMoney(invoice.TotalIr)} F CFA");
                 Row("TTC (Montant TTC)", $"{FormatMoney(invoice.TotalTtc)} F CFA", bold: true);
                 Row("Net à percevoir", $"{FormatMoney(invoice.NetAPayer)} F CFA");
             });

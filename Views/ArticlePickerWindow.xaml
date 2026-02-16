@@ -4,9 +4,64 @@
         Title="Ajouter un article"
         Width="1100" Height="750"
         FontFamily="Calibri"
-        FontSize="12"
+        FontSize="14"
         WindowStartupLocation="CenterOwner"
-        Background="#F5F6F7">
+        Background="#F5F6F7"
+        PreviewKeyDown="Window_PreviewKeyDown">
+
+    <Window.Resources>
+        <!-- Style pour la ligne sélectionnée du DataGrid -->
+        <Style x:Key="DataGridRowStyle" TargetType="DataGridRow">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="Black"/>
+            <Setter Property="BorderThickness" Value="0,0,0,0"/>
+            <Setter Property="MinHeight" Value="40"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#3498DB"/>
+                    <!-- Bleu vif -->
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#EBF5FB"/>
+                    <!-- Bleu clair au survol -->
+                    <Setter Property="Foreground" Value="Black"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Style pour les cellules -->
+        <Style x:Key="DataGridCellStyle" TargetType="DataGridCell">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0,0,1,0"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="5,0"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#3498DB"/>
+                    <!-- Même bleu que la ligne -->
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="BorderBrush" Value="#2980B9"/>
+                    <!-- Bordure plus foncée -->
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Style pour l'en-tête de colonne -->
+        <Style x:Key="ColumnHeaderStyle" TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#34495E"/>
+            <!-- Bleu foncé -->
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+            <Setter Property="BorderBrush" Value="#2C3E50"/>
+            <Setter Property="Padding" Value="8,4"/>
+        </Style>
+    </Window.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -17,8 +72,8 @@
 
         <Border Grid.Row="0" Background="#34495E" Padding="20,15">
             <StackPanel>
-                <TextBlock Text="SÉLECTION D'ARTICLES" FontSize="18" FontWeight="Bold" Foreground="White"/>
-                <TextBlock Text="Parcourez par rubriques ou utilisez la recherche globale" Foreground="#BDC3C7" FontSize="11"/>
+                <TextBlock Text="SÉLECTION D'ARTICLES" FontSize="20" FontWeight="Bold" Foreground="White"/>
+                <TextBlock Text="Parcourez par rubriques ou utilisez la recherche globale" Foreground="#BDC3C7" FontSize="13"/>
             </StackPanel>
         </Border>
 
@@ -31,38 +86,48 @@
 
             <Border Grid.Column="0" Background="White" BorderBrush="#DDD" BorderThickness="1" CornerRadius="8" Padding="15">
                 <StackPanel>
-                    <TextBlock Text="RECHERCHE GLOBALE" FontWeight="Bold" Foreground="#2C3E50" Margin="0,0,0,10"/>
-                    <TextBox x:Name="SearchBox" Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" Padding="8,5" FontSize="14" Foreground="Black"/>
+                    <TextBlock Text="RECHERCHE GLOBALE" FontWeight="Bold" Foreground="#2C3E50" Margin="0,0,0,10" FontSize="14"/>
+                    <TextBox x:Name="SearchBox" Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" Padding="8,5" FontSize="14" Foreground="Black" KeyDown="SearchBox_KeyDown"/>
 
                     <Separator Margin="0,20" Background="#EEE"/>
 
-                    <TextBlock Text="NAVIGATION PAR RUBRIQUE" FontWeight="Bold" Foreground="#2C3E50" Margin="0,0,0,10"/>
+                    <TextBlock Text="NAVIGATION PAR RUBRIQUE" FontWeight="Bold" Foreground="#2C3E50" Margin="0,0,0,10" FontSize="14"/>
 
-                    <TextBlock Text="Rubrique (Code - Désignation)" Margin="0,5,0,2" FontSize="11" Foreground="#555"/>
+                    <TextBlock Text="Rubrique (Code - Désignation)" Margin="0,5,0,2" FontSize="12" Foreground="#555"/>
                     <ComboBox ItemsSource="{Binding Rubriques}" 
                               SelectedItem="{Binding SelectedRubrique}" 
                               DisplayMemberPath="Display" 
-                              Padding="5" Foreground="Black">
+                              Padding="5" 
+                              FontSize="14" 
+                              Foreground="Black"
+                              Height="35"
+                              KeyDown="ComboBox_KeyDown">
                         <ComboBox.ItemContainerStyle>
                             <Style TargetType="ComboBoxItem">
                                 <Setter Property="Foreground" Value="Black"/>
+                                <Setter Property="FontSize" Value="14"/>
                             </Style>
                         </ComboBox.ItemContainerStyle>
                     </ComboBox>
 
-                    <TextBlock Text="Sous-Rubrique (Code - Désignation)" Margin="0,15,0,2" FontSize="11" Foreground="#555"/>
+                    <TextBlock Text="Sous-Rubrique (Code - Désignation)" Margin="0,15,0,2" FontSize="12" Foreground="#555"/>
                     <ComboBox ItemsSource="{Binding SelectedRubrique.SousRubriques}" 
                               SelectedItem="{Binding SelectedSousRubrique}" 
                               DisplayMemberPath="Display" 
-                              Padding="5" Foreground="Black">
+                              Padding="5" 
+                              FontSize="14" 
+                              Foreground="Black"
+                              Height="35"
+                              KeyDown="ComboBox_KeyDown">
                         <ComboBox.ItemContainerStyle>
                             <Style TargetType="ComboBoxItem">
                                 <Setter Property="Foreground" Value="Black"/>
+                                <Setter Property="FontSize" Value="14"/>
                             </Style>
                         </ComboBox.ItemContainerStyle>
                     </ComboBox>
 
-                    <Button Content="Réinitialiser les filtres" Margin="0,30,0,0" Background="#95A5A6" Foreground="White" BorderThickness="0" Height="35" FontWeight="Bold" Click="ResetFilters_Click"/>
+                    <Button Content="Réinitialiser les filtres" Margin="0,30,0,0" Background="#95A5A6" Foreground="White" BorderThickness="0" Height="40" FontWeight="Bold" FontSize="14" Click="ResetFilters_Click"/>
                 </StackPanel>
             </Border>
 
@@ -73,19 +138,58 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="0" Text="{Binding FilteredArticles.Count, StringFormat='\{0\} articles trouvés'}" FontStyle="Italic" Foreground="#7F8C8D" Margin="5,0,0,10"/>
+                    <TextBlock Grid.Row="0" Text="{Binding FilteredArticles.Count, StringFormat='\{0\} articles trouvés'}" FontStyle="Italic" Foreground="#7F8C8D" Margin="5,0,0,10" FontSize="13"/>
 
-                    <DataGrid Grid.Row="1" x:Name="ArticlesGrid" ItemsSource="{Binding FilteredArticles}" SelectedItem="{Binding SelectedArticle}" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" GridLinesVisibility="Horizontal" RowHeight="35" BorderThickness="0" MouseDoubleClick="ArticlesGrid_MouseDoubleClick">
+                    <DataGrid Grid.Row="1" x:Name="ArticlesGrid" 
+                              ItemsSource="{Binding FilteredArticles}" 
+                              SelectedItem="{Binding SelectedArticle}" 
+                              AutoGenerateColumns="False" 
+                              CanUserAddRows="False" 
+                              IsReadOnly="True" 
+                              GridLinesVisibility="None"
+                              HeadersVisibility="Column"
+                              RowHeight="40" 
+                              BorderThickness="1" 
+                              BorderBrush="#E0E0E0"
+                              MouseDoubleClick="ArticlesGrid_MouseDoubleClick"
+                              PreviewKeyDown="ArticlesGrid_PreviewKeyDown"
+                              FontSize="14"
+                              RowStyle="{StaticResource DataGridRowStyle}"
+                              CellStyle="{StaticResource DataGridCellStyle}"
+                              ColumnHeaderStyle="{StaticResource ColumnHeaderStyle}"
+                              Background="White"
+                              RowBackground="White"
+                              AlternatingRowBackground="#F9F9F9">
+                        <!-- Légère alternance pour mieux voir -->
+
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Référence" Binding="{Binding RefArticle}" Width="150"/>
-                            <DataGridTextColumn Header="Désignation" Binding="{Binding DesignationFr}" Width="*">
+                            <DataGridTextColumn Header="Référence" Binding="{Binding RefArticle}" Width="150">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock">
                                         <Setter Property="VerticalAlignment" Value="Center"/>
                                         <Setter Property="Padding" Value="5,0"/>
+                                        <Setter Property="FontSize" Value="14"/>
                                     </Style>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
+
+                            <DataGridTextColumn Header="Désignation" 
+                                                Binding="{Binding DesignationFr}" 
+                                                Width="*">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="VerticalAlignment" Value="Center"/>
+                                        <Setter Property="Padding" Value="5,0"/>
+                                        <Setter Property="FontSize" Value="14"/>
+                                        <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                        <Setter Property="ToolTip" Value="{Binding DesignationFr}"/>
+                                        <Setter Property="ToolTipService.Placement" Value="Mouse"/>
+                                        <Setter Property="ToolTipService.InitialShowDelay" Value="300"/>
+                                        <Setter Property="ToolTipService.ShowDuration" Value="5000"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+
                             <DataGridTextColumn Header="Conditionnement" Binding="{Binding Conditionnement}" Width="130"/>
 
                             <DataGridTextColumn Header="Prix HT (FCFA)" Binding="{Binding Prix, StringFormat=\{0:N0\}}" Width="120">
@@ -96,6 +200,7 @@
                                         <Setter Property="Foreground" Value="#27AE60"/>
                                         <Setter Property="VerticalAlignment" Value="Center"/>
                                         <Setter Property="Margin" Value="0,0,10,0"/>
+                                        <Setter Property="FontSize" Value="14"/>
                                     </Style>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
@@ -106,7 +211,9 @@
         </Grid>
 
         <Border Grid.Row="2" Background="#EBF5FB" BorderBrush="#AED6F1" BorderThickness="0,1,0,0" Padding="15,10">
-            <TextBlock Text="💡 Astuce : Double-cliquez sur une ligne pour l'ajouter à la facture. La fenêtre reste ouverte." Foreground="#2E86C1"/>
+            <TextBlock Text="💡 Astuce : Double-cliquez sur une ligne ou appuyez sur Entrée pour ajouter l'article à la facture." 
+                       Foreground="#2E86C1" 
+                       FontSize="13"/>
         </Border>
     </Grid>
 </Window>

@@ -220,8 +220,12 @@ namespace FacturationMercuriale.Services
                 CellText(FormatMoney(invoice.TotalHt) + " F CFA", 2000, W.JustificationValues.Right, bold: true)
             ));
 
-            var tvaPct = header.TvaRate.ToString("0.##", CultureInfo.GetCultureInfo("fr-FR"));
-            var irPct = header.IrRate.ToString("0.##", CultureInfo.GetCultureInfo("fr-FR"));
+            // Convertir les taux en pourcentages pour l'affichage
+            var tvaPercent = header.TvaRate * 100;
+            var irPercent = header.IrRate * 100;
+
+            var tvaPct = tvaPercent.ToString("0.##", CultureInfo.GetCultureInfo("fr-FR"));
+            var irPct = irPercent.ToString("0.##", CultureInfo.GetCultureInfo("fr-FR"));
 
             table.Append(new W.TableRow(
                 CellText($"TVA ({tvaPct}%)", 6000, W.JustificationValues.Left),

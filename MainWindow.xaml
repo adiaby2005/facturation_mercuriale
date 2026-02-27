@@ -42,6 +42,7 @@
                         <Separator/>
                         <MenuItem Header="Exporter au format Word" Click="ExportWord_Click"/>
                         <MenuItem Header="Exporter au format PDF" Click="ExportPdf_Click"/>
+                        <MenuItem Header="Exporter au format Excel" Click="ExportExcel_Click"/>
                         <Separator/>
                         <MenuItem Header="Activer l'application" Click="ActivateApp_Click" 
                                   Visibility="{Binding IsReadOnlyMode, Converter={StaticResource BooleanToVisibilityConverter}}">
